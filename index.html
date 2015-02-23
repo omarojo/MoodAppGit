@@ -1,0 +1,361 @@
+<html>
+<head>
+	<title>vyr.mood</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" type="text/css" />
+	<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+	<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script> -->
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.4.0/less.min.js"></script>
+	<script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script src="assets/jquery.ui.touch-punch.min.js"></script>
+	<link rel="stylesheet" href="css/style.css" type="text/css" />
+	<script src="//cdn.socket.io/socket.io-1.2.0.js"></script>
+
+</head>
+<body>
+	<div id="error" style="display:none;"></div>
+	<div id="usercount">Users Online:<div id="count"></div></div>
+
+	<div id="container" class="container-fluid">
+		<div id="info" class="row col-xs-12">
+			<div id="infotext"></div>
+		</div>
+		<div id="map"></div>
+		
+		<div id="moodPicker" class="col-xs-12">
+			<div id="happiest" class="mood row col-xs-12">
+				<div id="happiestIcon" class="icon glyphicon" mood="4">&nbsp</div>
+			</div>
+			<div id="happy" class="mood row col-xs-12">
+				<div id="happyIcon" class="icon glyphicon" mood="3">&nbsp</div>
+			</div>
+			<div id="neutral" class="mood row col-xs-12">
+				<div id="neutralIcon" class="icon glyphicon" mood="2">&nbsp</div>
+			</div>
+			<div id="sad" class="mood row col-xs-12">
+				<div id="sadIcon" class="icon glyphicon" mood="1">&nbsp</div>
+			</div>
+			<div id="saddest" class="mood row col-xs-12">
+				<div id="saddestIcon" class="icon glyphicon" mood="0">&nbsp</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+
+
+	document.ontouchstart = function(e){ 
+    	e.preventDefault(); 
+	}
+	document.ontouchmove = function(e){ 
+    	e.preventDefault(); 
+	}
+
+	// var server = "http://10.159.23.171:3000/mood";
+	var server = "http://206.12.10.49:3001/mood";
+
+	
+
+	var socketStream = io.connect(); //LOCAL
+	  
+	socketStream.on('connect', function () {
+	    console.log('Connected !'); 
+	});
+	
+	socketStream.on('disconnect', function () {
+	    console.log('Disconnected !');
+	});
+	
+	socketStream.on('usersConnected', function (count) {
+		$("#count").html(count);
+		console.log('** Total Users Online:'+count);
+
+	});
+
+	var queuedPoints = [];
+	var showingPoints = false;
+	
+	socketStream.on('NewMood', function (moodPoint) {
+		console.log(moodPoint);
+		var latlng = L.latLng(moodPoint.loc.coordinates[0], moodPoint.loc.coordinates[1]);
+		var point;
+		switch (parseInt(moodPoint.mtype)) {
+			case 0:
+				point = L.marker(latlng, {
+					icon : saddestMapIcon
+				});
+				break;
+			case 1:
+				point = L.marker(latlng, {
+					icon : sadMapIcon
+				});
+				break;
+			case 2:
+				point = L.marker(latlng, {
+					icon : neutralMapIcon
+				});
+				break;
+			case 3:
+				point = L.marker(latlng, {
+					icon : happyMapIcon
+				});
+				break;
+			case 4:
+				point = L.marker(latlng, {
+					icon : happiestMapIcon
+				});
+				break;
+		}
+		if (showingPoints){
+			point.addTo(map);
+		}else{
+			queuedPoints.push(point);
+		}
+	});	
+
+	//  Geo-locating and error handling for geo-location follows:
+
+	var errordiv = $("#error")
+	var position;
+
+	var map = L.map('map', {
+		minZoom: 11,
+    	center: [49.28, -123.12],
+   		zoom: 13
+	});
+
+	function getLocation() {
+    	if (navigator.geolocation) {
+       		navigator.geolocation.getCurrentPosition(setPosition, showError);
+    	} else {
+        	errordiv.html("Geolocation is not supported by this browser.");
+        	errordiv.show();
+    	}
+	}
+
+	function setPosition(position) {
+		position = L.latLng(position.coords.latitude, position.coords.longitude);
+		map.setView(position, 13);
+	}
+
+	function showError(error) {
+	    switch(error.code) {
+	        case error.PERMISSION_DENIED:
+	            errordiv.html("User denied the request for Geolocation.");
+        		errordiv.show();
+	            break;
+	        case error.POSITION_UNAVAILABLE:
+	            errordiv.html("Location information is unavailable.");
+        		errordiv.show();
+	            break;
+	        case error.TIMEOUT:
+	            errordiv.html("The request to get user location timed out.");
+        		errordiv.show();
+	            break;
+	        case error.UNKNOWN_ERROR:
+	            errordiv.html("An unknown error occurred.");
+        		errordiv.show();
+	            break;
+		}
+	}
+
+	
+
+	// Mood Icon Stuff follows:
+
+	$(".icon").draggable({
+		cursorAt: { bottom: 5,
+					 }
+	});
+
+	function setIcons(){
+		$("#happiestIcon").css("top", $("#happiest").offset().top+30);
+		$("#happyIcon").css("top", $("#happy").offset().top+30);
+		$("#neutralIcon").css("top", $("#neutral").offset().top+30);
+		$("#sadIcon").css("top", $("#sad").offset().top+30);
+		$("#saddestIcon").css("top", $("#saddest").offset().top+30);
+	}
+
+	$( window ).on("resize", setIcons);
+
+	setIcons();
+	
+	// Stuff for clicking and dragging icons follows:
+
+	var placed = false;
+
+
+
+	$(".icon").on("vmousedown", function(e){
+		e.preventDefault();
+		$("#container").append(this);
+		$("#moodPicker").addClass('in');
+		var icons = $(".icon");
+		for (var i = 0; i < icons.length; i++) {
+			if (icons[i] != this){
+				$(icons[i]).fadeOut(1000);
+			}
+		};
+	});
+
+	var happiestMapIcon = L.divIcon({
+		iconSize : 75,
+		className: "happiestMapIcon"
+	});
+
+	var happyMapIcon = L.divIcon({
+		iconSize : 75,
+		className: "happyMapIcon"
+	});
+
+	var neutralMapIcon = L.divIcon({
+		iconSize : 75,
+		className: "neutralMapIcon"
+	});
+
+	var sadMapIcon = L.divIcon({
+		iconSize : 75,
+		className: "sadMapIcon"
+	});
+
+	var saddestMapIcon = L.divIcon({
+		iconSize : 75,
+		className: "saddestMapIcon"
+	});
+
+	$(".icon").on("vmouseup", function(e){
+		if (!placed){
+			var latlng = map.mouseEventToLatLng(e);
+			var mood = $(this).attr('mood');
+			$(this).draggable({
+	  			disabled: true
+			});
+			placed = true;7
+			$("#infotext").fadeOut(200,
+				function(){
+					switch (parseInt(mood)) {
+						case 0:
+							$("#infotext").html("i'm sorry to hear that. i hope your day gets better.");
+							break;
+						case 1:
+							$("#infotext").html("remember: it could be worse.");
+							break;
+						case 2:
+							$("#infotext").html("comme-ci, comme-&ccedila.");
+							break;
+						case 3:
+							$("#infotext").html("things are looking up!");
+							break;
+						case 4:
+							$("#infotext").html("spread that happiness!");
+							break;
+						default:
+							break;
+					};
+					$("#infotext").fadeIn(1000);
+				});
+			postMood(mood, latlng);
+			getMoods();
+			var icon;
+			switch (parseInt(mood)) {
+				case 0:
+					icon = { icon : saddestMapIcon };
+					break;
+				case 1:
+					icon = { icon : sadMapIcon }
+					break;
+				case 2:
+					icon = { icon : neutralMapIcon }
+					break;
+				case 3:
+					icon = { icon : happyMapIcon }
+					break;
+				case 4:
+					icon = { icon : happiestMapIcon }
+					break;
+				default:
+					break;
+			};
+			marker = L.marker(latlng, icon);
+			
+			marker.addTo(map);
+			$(this).fadeOut(200);
+		}		
+	});
+
+	function getMoods(){
+		$.get(server, function(data){
+			
+			for (var i = 0; i < data.length; i++) {
+				var latlng = L.latLng(data[i].loc.coordinates[0], data[i].loc.coordinates[1]);
+				var point;
+				switch (parseInt(data[i].mtype)) {
+					case 0:
+						point = L.marker(latlng, {
+							icon : saddestMapIcon
+						});
+						break;
+					case 1:
+						point = L.marker(latlng, {
+							icon : sadMapIcon
+						});
+						break;
+					case 2:
+						point = L.marker(latlng, {
+							icon : neutralMapIcon
+						});
+						break;
+					case 3:
+						point = L.marker(latlng, {
+							icon : happyMapIcon
+						});
+						break;
+					case 4:
+						point = L.marker(latlng, {
+							icon : happiestMapIcon
+						});
+						break;
+				}
+				point.addTo(map);
+			};
+
+			showingPoints = true;
+
+			for (var i = 0; i < queuedPoints.length; i++){
+				queuedPoints[i].addTo(map);
+			}
+
+		})
+	}
+
+	function postMood(mood, latlng){
+		var lat = latlng.lat;
+		var lng = latlng.lng;
+		$.post(server,
+			{ 	mtype : mood,
+				loc : [lat, lng] 
+			},
+			function(data){
+			});
+	}
+	
+	$(document).ready(function(){
+		$("#infotext").hide();
+		$("#infotext").text("drag your mood to your current location.")
+		$("#infotext").fadeIn(1000);
+	})
+	
+	getLocation();
+
+	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(map);
+
+
+	</script>
+</body>
+</html>

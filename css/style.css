@@ -1,0 +1,177 @@
+body, html {
+	text-align: center;
+	overflow: hidden;
+
+}
+
+#usercount{
+	z-index: 9;
+	position: fixed;
+	top: 8%;
+	right: 10px;
+
+}
+
+#count{
+	font-size: 2em;
+}
+
+.container-fluid {
+	z-index: 0;
+	padding: 0;
+	text-align: center;
+}
+
+.col-xs-12 {
+	padding: 0;
+	margin: 0;
+}
+
+.icon {
+
+	width:75px;
+	height: 75px;
+	z-index: 100;
+	position: fixed;
+	font-size: 50px;
+	margin: 0 auto;
+	background-repeat: no-repeat;
+}
+
+.icon.in {
+	display:none;
+}
+
+#infotext {
+	color: #FFFFFF;
+	margin-top: 5px;
+}
+
+#map {
+	top: 5%;
+	width:100%; 
+	height: 95%;
+	position: absolute;
+	z-index: 0;
+}
+
+#moodpicker {
+	-webkit-transition: width 2s ease;
+    -moz-transition: width 2s ease;
+    -o-transition: width 2s ease;
+    transition: width 2s ease;
+    text-align: center;
+	left:0;
+	top:5%;
+	z-index: 10;
+	background-color: #000000;
+	position: absolute;
+	height:100%;
+
+}
+
+#moodpicker.in {
+	width:0px;
+}
+
+
+#info {
+	z-index: 10;
+	text-align: center;
+	height: 5%;
+	background-color: #666666;
+	position: absolute;
+	top: 0;
+}
+
+.mood {
+	text-align: center;
+	height:19%;
+}
+
+#happiest {
+	background-color: #FFB300;
+}
+
+#happy {
+	background-color: #62C80F;
+}
+
+#neutral {
+	background-color: #49A5FF;
+}
+
+#sad {
+	background-color: #E30076;
+}
+
+#saddest {
+	background-color: #65008B;
+}
+
+#happiestIcon, .happiestMapIcon{
+	margin-left: -37px;
+	background-image: url("../assets/images/happiest.svg");
+}
+
+#happyIcon, .happyMapIcon{
+	margin-left: -37px;
+	background-image: url("../assets/images/happy.svg");
+}
+#neutralIcon, .neutralMapIcon{
+	margin-left: -37px;
+	background-image: url("../assets/images/neutral.svg");
+}
+#sadIcon, .sadMapIcon{
+	margin-left: -37px;
+	background-image: url("../assets/images/sad.svg");
+}
+#saddestIcon, .saddestMapIcon{
+	margin-left: -37px;
+	background-image: url("../assets/images/saddest.svg");
+}
+
+.leaflet-marker-icon {
+	background-repeat: no-repeat;
+	margin-top: -69px;
+	width:75px;
+	height:75px;
+  -webkit-animation: fadein 1.5s; /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 1.5s; /* Firefox < 16 */
+  -ms-animation: fadein 1.5s; /* Internet Explorer */
+  -o-animation: fadein 1.5s; /* Opera < 12.1 */
+  animation: fadein 1.5s;
+}
+
+.leaflet-marker-icon .current {
+	opacity: 1 !important;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Opera < 12.1 */
+@-o-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
